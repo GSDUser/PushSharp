@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using LogicSoftware.WebPushEncryption;
 using PushSharp.Core;
 using PushSharp.Web.Exceptions;
-using PushSharp.Web.Helpers;
 
 namespace PushSharp.Web
 {
@@ -46,17 +46,18 @@ namespace PushSharp.Web
                 https://tools.ietf.org/html/draft-ietf-webpush-encryption-04
                 https://developers.google.com/web/updates/2016/03/web-push-encryption
             */
-            var encryptedPayload = EncryptionHelper.Encrypt(subscription, json);
-
+            var encryptedPayload = EncryptPayload(subscription, json);
+            
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, subscription.EndPoint);
             if (encryptedPayload != null)
             {
+                
                 request.Content = new ByteArrayContent(encryptedPayload.Payload);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 request.Content.Headers.ContentLength = encryptedPayload.Payload.Length;
                 request.Content.Headers.ContentEncoding.Add("aesgcm");
-                request.Headers.Add("Crypto-Key", "keyid=p256dh;dh=" + WebEncoder.Base64UrlEncode(encryptedPayload.PublicKey));
-                request.Headers.Add("Encryption", "keyid=p256dh;salt=" + WebEncoder.Base64UrlEncode(encryptedPayload.Salt));
+                request.Headers.Add("Crypto-Key", "keyid=p256dh;dh=" + encryptedPayload.Base64EncodePublicKey());
+                request.Headers.Add("Encryption", "keyid=p256dh;salt=" + encryptedPayload.Base64EncodeSalt());
             }
 
             request.Headers.TryAddWithoutValidation("TTL", DefaultTTL);
@@ -72,6 +73,20 @@ namespace PushSharp.Web
             }
 
             return request;
+        }
+
+        private EncryptionResult EncryptPayload(WebPushSubscription subscription, string payload)
+        {
+            if (string.IsNullOrEmpty(payload))
+            {
+                return null;
+            }
+
+            subscription.Validate();
+
+            var keys = subscription.Keys;
+
+            return Encryptor.Encrypt(keys.P256dh, keys.Auth, payload);
         }
 
         async Task ProcessResponseError(HttpResponseMessage httpResponse, WebPushNotification notification)
