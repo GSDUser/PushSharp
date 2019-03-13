@@ -57,12 +57,13 @@ namespace PushSharp.Windows
             //https://cloud.notify.windows.com/?token=.....
             //Authorization: Bearer {AccessToken}
             //
-
-            //TODO: Microsoft recommends we disable expect-100 to improve latency
+                        
             // Not sure how to do this in httpclient
             var http = new HttpClient ();
+            http.DefaultRequestHeaders.ExpectContinue = false; //Disable expect-100 to improve latency
 
-            http.DefaultRequestHeaders.TryAddWithoutValidation ("X-WNS-Type", string.Format ("wns/{0}", notification.Type.ToString ().ToLower ()));
+            http.DefaultRequestHeaders.TryAddWithoutValidation ("X-WNS-Type", string.Format ("wns/{0}", notification.Type.ToString().ToLower ()));
+
             if(!http.DefaultRequestHeaders.Contains("Authorization")) //prevent double values
                 http.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Bearer " + accessToken);
 
@@ -89,16 +90,23 @@ namespace PushSharp.Windows
                 if (winTileBadge != null && winTileBadge.CachePolicy.HasValue)
                     http.DefaultRequestHeaders.Add("X-WNS-Cache-Policy", winTileBadge.CachePolicy == WnsNotificationCachePolicyType.Cache ? "cache" : "no-cache");
             }
+            else if(notification.Type == WnsNotificationType.Toast)
+            {
+                http.DefaultRequestHeaders.TryAddWithoutValidation("X-WindowsPhone-Target", notification.Type.ToString().ToLower());
+            }
 
             HttpContent content = null;
 
-            if (notification.Type == WnsNotificationType.Raw) {
-                content = new StreamContent (new MemoryStream (Encoding.UTF8.GetBytes (notification.Payload.ToString())));
-            } else  {
+            if (notification.Type == WnsNotificationType.Raw)
+            {
+                content = new StreamContent(new MemoryStream(((WnsRawNotification)notification).RawData));
+            }
+            else
+            {
                 content = new StringContent(
-                notification.Payload.ToString(), // Get XML payload 
-                Encoding.UTF8, 
-                "text/xml");
+                    notification.Payload.ToString(), // Get XML payload 
+                    Encoding.UTF8, 
+                    "text/xml");
             }
 
             var result = await http.PostAsync (notification.ChannelUri, content);
@@ -161,7 +169,7 @@ namespace PushSharp.Windows
             var wnsDeviceConnectionStatus = TryGetHeaderValue (resp.Headers, "X-WNS-DEVICECONNECTIONSTATUS") ?? "connected";
             var wnsErrorDescription = TryGetHeaderValue (resp.Headers, "X-WNS-ERROR-DESCRIPTION") ?? "";
             var wnsMsgId = TryGetHeaderValue (resp.Headers, "X-WNS-MSG-ID");
-            var wnsNotificationStatus = TryGetHeaderValue (resp.Headers, "X-WNS-NOTIFICATIONSTATUS") ?? "";
+            var wnsNotificationStatus = TryGetHeaderValue (resp.Headers, "X-WNS-NOTIFICATIONSTATUS") ?? TryGetHeaderValue(resp.Headers, "X-NOTIFICATIONSTATUS") ?? "" ;
 
             result.DebugTrace = wnsDebugTrace;
             result.ErrorDescription = wnsErrorDescription;
