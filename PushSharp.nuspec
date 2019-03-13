@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
-        <id>PushSharp</id>
+        <id>LogicSoftware.PushSharp</id>
         <version>$version$</version>
         <title>PushSharp</title>
         <authors>Redth</authors>
-        <owners>Redth</owners>
-        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.txt</licenseUrl>
-        <projectUrl>https://github.com/Redth/PushSharp/</projectUrl>
-        <iconUrl>https://github.com/Redth/PushSharp/raw/master/Resources/PushSharp-Icon-NuGet-Small.png</iconUrl>
+        <owners>LogicSoftware</owners>
+        <license type="expression">Apache-2.0</license>
+        <projectUrl>https://github.com/LogicSoftware/PushSharp</projectUrl>
+        <iconUrl>https://github.com/LogicSoftware/PushSharp/raw/master/Resources/PushSharp-Icon-NuGet-Small.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A server-side library for sending Push Notifications to iOS/OSX (APNS), Android/Chrome (GCM), Windows Phone/Windows (WNS), Amazon (ADM), Blackberry and Firefox OS</description>
         <summary>A server-side library for sending Push Notifications to many platforms (APNS, GCM, WNS, ADM)</summary>
         <releaseNotes>
-            3.0.0 - Complete Rewrite, New API, see project site for more info
+            Redth PushSharp + TLS 1.2 +  Chrome / Firefox payload encryption
         </releaseNotes>
         <copyright>2012-2016 Redth</copyright>
         <language>en-US</language>
@@ -32,6 +32,7 @@
         <file src="PushSharp.Firefox\bin\Release\PushSharp.Firefox.dll" target="lib\net45\PushSharp.Firefox.dll" />
         <file src="PushSharp.Windows\bin\Release\PushSharp.Windows.dll" target="lib\net45\PushSharp.Windows.dll" />
         <file src="PushSharp.Google\bin\Release\PushSharp.Google.dll" target="lib\net45\PushSharp.Google.dll" />
+        <file src="PushSharp.Web\bin\Release\PushSharp.Web.dll" target="lib\net45\PushSharp.Web.dll" />
         <file src="PushSharp.Blackberry\bin\Release\PushSharp.Blackberry.dll" target="lib\net45\PushSharp.Blackberry.dll" />
     </files>
 </package>
