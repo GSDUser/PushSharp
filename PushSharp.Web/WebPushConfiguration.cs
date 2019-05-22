@@ -4,11 +4,14 @@
     {
         public WebPushConfiguration()
         {
-            GcmEndPoint = "https://android.googleapis.com/gcm/send";
+            GcmEndPoints = new [] {
+                "https://android.googleapis.com/gcm/send",
+                "https://fcm.googleapis.com/fcm/send"
+            };
         }
 
         public string GcmAPIKey { get; set; }
 
-        internal string GcmEndPoint { get; set; }
+        internal string[] GcmEndPoints { get; set; }
     }
 }

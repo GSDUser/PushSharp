@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -62,7 +63,7 @@ namespace PushSharp.Web
 
             request.Headers.TryAddWithoutValidation("TTL", DefaultTTL);
 
-            var isGsm = subscription.EndPoint.StartsWith(Configuration.GcmEndPoint, StringComparison.Ordinal);
+            var isGsm = Configuration.GcmEndPoints.Any(x => subscription.EndPoint.StartsWith(x, StringComparison.Ordinal));
             if (isGsm)
             {
                 if (string.IsNullOrEmpty(Configuration.GcmAPIKey))
