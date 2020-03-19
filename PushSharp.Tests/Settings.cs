@@ -79,6 +79,11 @@ namespace PushSharp.Tests
 
         public class WebPushSettings
         {
+            public string PrivateApplicationKey { get; set; }
+            public string PublicApplicationKey { get; set; }
+            public string Subject { get; set; }
+
+
             [JsonProperty("crhome_subscription")]
             public WebPushSubscription ChromeSubscription { get; set; }
 
