@@ -72,20 +72,22 @@ namespace PushSharp.Web
                 }
                 request.Headers.TryAddWithoutValidation("Authorization", "key=" + Configuration.GcmAPIKey);
             }
+            else
+            {
+                var uri = new Uri(subscription.EndPoint);
+                var audience = uri.Scheme + @"://" + uri.Host;
 
-            var uri = new Uri(subscription.EndPoint);
-            var audience = uri.Scheme + @"://" + uri.Host;
+                /*
+                    see for details about Web Push VAPID authentication
+                    https://tools.ietf.org/html/rfc8292
+                    https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol
+                    https://blog.mozilla.org/services/2016/08/23/sending-vapid-identified-webpush-notifications-via-mozillas-push-service/
+                */
+                var vapidHeader = VapidHelper.GetVapidAuthenticationHeader(audience, Configuration.Subject,
+                    Configuration.PublicApplicationKey, Configuration.PrivateApplicationKey);
+                request.Headers.Add("Authorization", vapidHeader);
+            }
 
-            /*
-                see for details about Web Push VAPID authentication
-                https://tools.ietf.org/html/rfc8292
-                https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol
-                https://blog.mozilla.org/services/2016/08/23/sending-vapid-identified-webpush-notifications-via-mozillas-push-service/
-            */
-            var vapidHeader = VapidHelper.GetVapidAuthenticationHeader(audience, Configuration.Subject,
-                Configuration.PublicApplicationKey, Configuration.PrivateApplicationKey);
-            request.Headers.Add("Authorization", vapidHeader);
-            
             return request;
         }
 
