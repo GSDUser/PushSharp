@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -10,7 +9,7 @@ namespace PushSharp.Web
 {
     public static class VapidHelper
     {
-        private const int DEFAULT_EXPIRATION = 43200;
+        private const int DEFAULT_EXPIRATION = 43200; //12 hours
 
         /// <summary>
         /// This method takes the required VAPID parameters and returns the required
@@ -23,41 +22,35 @@ namespace PushSharp.Web
         /// <param name="expiration">The expiration of the VAPID JWT.</param>
         /// <returns>Authorization header value.</returns>
         public static string GetVapidAuthenticationHeader(string audience, string subject, string publicKey,
-            string privateKey, long expiration = -1)
+            string privateKey, DateTime? expiration = null)
         {
             ValidateAudience(audience);
             ValidateSubject(subject);
             ValidatePublicKey(publicKey);
             ValidatePrivateKey(privateKey);
 
-            if (expiration == -1)
+            if (!expiration.HasValue)
             {
-                expiration = UnixTimeNow() + DEFAULT_EXPIRATION;
+                expiration = DateTime.UtcNow.AddSeconds(DEFAULT_EXPIRATION);
             }
             else
             {
-                ValidateExpiration(expiration);
+                ValidateExpiration(expiration.Value);
             }
 
-            var header = new Dictionary<string, object> { { "typ", "JWT" }, { "alg", "ES256" } };
-
-            var jwtPayload = new Dictionary<string, object> { { "aud", audience }, { "exp", expiration }, { "sub", subject } };
-
             var decodedPrivateKey = UrlBase64Encoder.Decode(privateKey);
-            var signingKey = ECKeyHelper.GetPrivateKey(decodedPrivateKey);
-
             var decodedPublicKey = UrlBase64Encoder.Decode(publicKey);
-
-            var signer = new JwsSigner(signingKey);
-            var token = signer.GenerateSignature(header, jwtPayload);
 
             var privateECDsa = GetECDsaByPrivateKey(decodedPublicKey, decodedPrivateKey);
 
             //Create JWT token and sign it using ECDsa
-            var result = new JwtSecurityToken(null, audience, new []{ new Claim("sub", subject), }, null, DateTime.UtcNow.AddDays(0.5),
-                new SigningCredentials(new ECDsaSecurityKey(privateECDsa), SecurityAlgorithms.EcdsaSha256));
+            var securityToken = new JwtSecurityToken(
+                audience: audience,
+                claims: new[] { new Claim("sub", subject) },
+                expires: expiration,
+                signingCredentials: new SigningCredentials(new ECDsaSecurityKey(privateECDsa), SecurityAlgorithms.EcdsaSha256));
             
-             var jwToken = new JwtSecurityTokenHandler().WriteToken(result);
+             var jwToken = new JwtSecurityTokenHandler().WriteToken(securityToken);
 
             return $"vapid t={jwToken}, k={publicKey}";
         }
@@ -145,18 +138,12 @@ namespace PushSharp.Web
             return ecDsaCng;
         }
 
-        private static void ValidateExpiration(long expiration)
+        private static void ValidateExpiration(DateTime expiration)
         {
-            if (expiration <= UnixTimeNow())
+            if (expiration <= DateTime.UtcNow)
             {
                 throw new ArgumentException("Vapid expiration must be a unix timestamp in the future.");
             }
-        }
-
-        private static long UnixTimeNow()
-        {
-            var timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0);
-            return (long)timeSpan.TotalSeconds;
         }
     }
 }
