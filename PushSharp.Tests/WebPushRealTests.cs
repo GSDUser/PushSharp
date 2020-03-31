@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using PushSharp.Web;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using PushSharp.Web.Exceptions;
 
 namespace PushSharp.Tests
@@ -137,7 +136,10 @@ namespace PushSharp.Tests
                 var settings = Settings.Instance;
                 var configuration = new WebPushConfiguration
                 {
-                    GcmAPIKey = settings.GcmAuthToken
+                    GcmAPIKey = settings.GcmAuthToken,
+                    PrivateApplicationKey = settings.WebPush.PrivateApplicationKey,
+                    PublicApplicationKey = settings.WebPush.PublicApplicationKey,
+                    Subject = settings.WebPush.Subject
                 };
 
                 Exceptions = new List<Exception>();

@@ -63,7 +63,7 @@ namespace PushSharp.Web
 
             request.Headers.TryAddWithoutValidation("TTL", DefaultTTL);
 
-            var isGsm = Configuration.GcmEndPoints.Any(x => subscription.EndPoint.StartsWith(x, StringComparison.Ordinal));
+            var isGsm = subscription.EndPoint.StartsWith(Configuration.GcmEndPoint, StringComparison.Ordinal);
             if (isGsm)
             {
                 if (string.IsNullOrEmpty(Configuration.GcmAPIKey))
@@ -71,6 +71,21 @@ namespace PushSharp.Web
                     throw new Exception("GcmAPIKey is required.");
                 }
                 request.Headers.TryAddWithoutValidation("Authorization", "key=" + Configuration.GcmAPIKey);
+            }
+            else
+            {
+                var uri = new Uri(subscription.EndPoint);
+                var audience = uri.Scheme + @"://" + uri.Host;
+
+                /*
+                    see for details about Web Push VAPID authentication
+                    https://tools.ietf.org/html/rfc8292
+                    https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol
+                    https://blog.mozilla.org/services/2016/08/23/sending-vapid-identified-webpush-notifications-via-mozillas-push-service/
+                */
+                var vapidHeader = VapidHelper.GetVapidAuthenticationHeader(audience, Configuration.Subject,
+                    Configuration.PublicApplicationKey, Configuration.PrivateApplicationKey);
+                request.Headers.Add("Authorization", vapidHeader);
             }
 
             return request;
@@ -105,11 +120,11 @@ namespace PushSharp.Web
             throw new WebPushNotificationException(notification, msg, responseBody)
             {
                 IsExpiredSubscription = IsExpiredSubscription(httpResponse),
-                IsPayloadExceedLimit = IsPayloadExceedLimit(httpResponse)
+                IsPayloadExceedLimit = IsPayloadExceedLimit(httpResponse, responseBody)
             };
         }
 
-        private bool IsPayloadExceedLimit(HttpResponseMessage response)
+        private bool IsPayloadExceedLimit(HttpResponseMessage response, string responseBody)
         {
             //gcm returns entity too large response
             if (response.StatusCode == HttpStatusCode.RequestEntityTooLarge)
@@ -117,8 +132,14 @@ namespace PushSharp.Web
                 return true;
             }
 
-            //mozilla push service returns gateway timeout response
-            if (response.StatusCode == HttpStatusCode.GatewayTimeout)
+            //actual behavior for gcm
+            if (responseBody.Contains("data passed in the request must be less than"))
+            {
+                return true;
+            }
+
+            //mozilla push service returns bad gateway response (gateway timeout response was returning earlier)
+            if (response.StatusCode == HttpStatusCode.GatewayTimeout || response.StatusCode == HttpStatusCode.BadGateway)
             {
                 return true;
             }

@@ -13,7 +13,7 @@
         <description>A server-side library for sending Push Notifications to iOS/OSX (APNS), Android/Chrome (GCM), Windows Phone/Windows (WNS), Amazon (ADM), Blackberry and Firefox OS</description>
         <summary>A server-side library for sending Push Notifications to many platforms (APNS, GCM, WNS, ADM)</summary>
         <releaseNotes>
-            Redth PushSharp + TLS 1.2 +  Chrome / Firefox payload encryption
+            Redth PushSharp + TLS 1.2 +  Chrome / Firefox payload encryption + web push vapid authentication
         </releaseNotes>
         <copyright>2012-2016 Redth</copyright>
         <language>en-US</language>
