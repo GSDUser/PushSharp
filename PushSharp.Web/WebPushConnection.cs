@@ -57,8 +57,8 @@ namespace PushSharp.Web
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 request.Content.Headers.ContentLength = encryptedPayload.Payload.Length;
                 request.Content.Headers.ContentEncoding.Add("aesgcm");
-                request.Headers.Add("Crypto-Key", "keyid=p256dh;dh=" + encryptedPayload.Base64EncodePublicKey());
-                request.Headers.Add("Encryption", "keyid=p256dh;salt=" + encryptedPayload.Base64EncodeSalt());
+                request.Headers.Add("Crypto-Key", "dh=" + encryptedPayload.Base64EncodePublicKey());
+                request.Headers.Add("Encryption", "salt=" + encryptedPayload.Base64EncodeSalt());
             }
 
             request.Headers.TryAddWithoutValidation("TTL", DefaultTTL);
