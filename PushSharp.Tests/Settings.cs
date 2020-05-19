@@ -96,6 +96,10 @@ namespace PushSharp.Tests
 
             [JsonProperty("firefox_outdated_subscription")]
             public WebPushSubscription FirefoxOutdatedSubscription { get; set; }
+
+
+            [JsonProperty("edge_subscription")]
+            public WebPushSubscription EdgeSubscription { get; set; }
         }
     }
 }

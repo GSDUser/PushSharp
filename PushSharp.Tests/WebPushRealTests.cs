@@ -124,6 +124,25 @@ namespace PushSharp.Tests
             ctx.AssertSubscriptionExpired();
         }
 
+        [Test]
+        public void Edge_Notification_With_Payload_Test()
+        {
+            var settings = Settings.Instance;
+            var ctx = new BrokerContext();
+            ctx.Start();
+
+            var subsription = settings.WebPush.EdgeSubscription;
+
+            var notif = new WebPushNotification(subsription);
+            notif.Payload = JObject.Parse("{ \"somekey\" : \"somevalue\" }");
+            ctx.Broker.QueueNotification(notif);
+
+            ctx.Broker.Stop();
+
+            Assert.AreEqual(1, ctx.Succeeded);
+            Assert.AreEqual(0, ctx.Failed);
+        }
+
         private class BrokerContext
         {
             public int Failed { get; private set; }
